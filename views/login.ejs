@@ -1,0 +1,43 @@
+<%- include('parts/html-head') %>
+<%- include('parts/navbar') %>
+
+<div class="container">
+
+    <div class="rol">
+        <div class="col-lg-6">
+            <form name="form1" onsubmit="sendData(); return false;">
+                <div class="mb-3">
+                    <label for="account" class="form-label">帳號</label>
+                    <input type="text" class="form-control" id="account" name="account">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">密碼</label>
+                    <input type="password" class="form-control" name="password" id="password">
+                </div>
+
+                <button type="submit" class="btn btn-primary">登入</button>
+            </form>
+
+
+        </div>
+    </div>
+
+
+</div>
+
+<%- include('parts/scripts') %>
+<script>
+    function sendData(){
+        $.post('', $(document.form1).serialize(), function(data){
+            console.log(data);
+            if(data.success){
+                alert('登入成功');
+                location.href = '/';
+            } else {
+                alert(data.error);
+            }
+        }, 'json');
+    }
+
+</script>
+<%- include('parts/html-foot') %>

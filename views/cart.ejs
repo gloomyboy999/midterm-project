@@ -1,0 +1,138 @@
+<%- include('parts/html-head') %> <%- include('parts/navbar') %>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">品名</th>
+            <th scope="col">價格</th>
+            <th scope="col">數量</th>
+            <th scope="col">小記</th>
+            <th scope="col">甜度</th>
+            <th scope="col">冰量</th>
+            <th scope="col">刪除</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(let i of rows){ %>
+          <tr
+            data-id="<%= i.id %>"
+            data-sel1="<%= i.sel1 %>"
+            data-sel2="<%= i.sel2 %>"
+          >
+            <td><%= i.name %></td>
+            <td class="price"><%= i.price %></td>
+            <td>
+              <input class="qty" type="number" min="1" value="<%= i.qty %>" />
+            </td>
+            <td class="total"><%= i.price * i.qty %></td>
+            <td><%= i.sel1Text %></td>
+            <td><%= i.sel2Text %></td>
+
+            <td>
+              <button class="fas fa-trash-alt" onclick="delbtn(this)"></button>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"></td>
+
+            <td>
+              總數量:
+              <span id="counts"><%= cartTotal %></span>
+            </td>
+            <td>
+              總價:
+              <span id="sum_price"></span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('parts/scripts') %>
+<script>
+  function delbtn(btn) {
+    // console.log(btn);
+    let $trs = $(btn).parents("tr"); //$(btn).parent().parent()
+    let id = $trs.attr("data-id");
+    let sel1 = $trs.attr("data-sel1");
+    let sel2 = $trs.attr("data-sel2");
+    let prod = {
+      id,
+      sel1,
+      sel2,
+    };
+    // console.log(prod);
+    let yes = confirm("確定要刪除該品項嗎?")
+    if (yes){
+      $.post("/cart/del", prod, function (data) {
+        console.log(data);
+        $trs.remove();
+        itemTotal(data);
+        $("#sum_price").text(sumPrice());
+      });
+    }else{
+    };
+  }
+
+  $("input.qty").on("change", function () {
+    let me = $(this);
+    let id = me.closest("tr").attr("data-id");
+    let sel1 = me.closest("tr").attr("data-sel1");
+    let sel2 = me.closest("tr").attr("data-sel2");
+    // 在 tr 中用 td 的class屬性找到 price 的值
+    let price = +me.closest("tr").find("td.price").text();
+    let qty = +me.val();
+    // 計算小記 price * qty
+    let s_price = me
+      .closest("tr")
+      .find("td.total")
+      .text(price * qty);
+
+    let prod = {
+      id,
+      sel1,
+      sel2,
+      qty,
+    };
+    //console.log({id, qty});
+
+    $.post(
+      "/cart/set",
+      prod,
+      function (data) {
+        itemTotal(data);
+        console.log(data);
+        $("#sum_price").text(sumPrice());
+      },
+      "json"
+    );
+  });
+
+  function itemTotal(prod) {
+    let totalCount = 0;
+    for (let i = 0, len = prod.length; i < len; i++) {
+      totalCount = prod[i].qty + totalCount;
+    }
+    $("#itemCount").text(totalCount);
+    $("#counts").text(totalCount);
+  };
+
+  function sumPrice() {
+    let totalPrice = 0;
+    $("td.total").each(function () {
+      totalPrice += Number($(this).text()); //字串轉換為數值
+    });
+    return totalPrice;
+  };
+  $("#sum_price").text(sumPrice());
+
+</script>
+<%- include('parts/html-foot') %>

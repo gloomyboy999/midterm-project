@@ -1,0 +1,137 @@
+<%- include('parts/html-head') %> <%- include('parts/navbar') %>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          <li class="page-item <%= 1===page ? 'disabled' : '' %>">
+            <a class="page-link" href="?page=<%= page-1 %>">
+              <i class="fas fa-arrow-circle-left"></i>
+            </a>
+          </li>
+
+          <% for(let i=page-5; i<=page+5; i++) if(i>=1 && i<=totalPages){ %>
+          <li class="page-item <%= i===page ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+          </li>
+          <% } %>
+
+          <li class="page-item <%= totalPages===page ? 'disabled' : '' %>">
+            <a class="page-link" href="?page=<%= page+1 %>">
+              <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- <div>
+    <span style="font-size: larger; font-weight: bolder"
+      >公告: 如未選取甜度及冰量, 預設為皆為正常</span
+    >
+  </div> -->
+
+  <div class="row">
+    <div class="col">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th scope="col">品名</th>
+            <th scope="col">價格</th>
+            <th scope="col">甜度</th>
+            <th scope="col">冰量</th>
+            <th scope="col">加入購物車</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(let i of rows){ %>
+          <tr data-id="<%= i.id %>">
+            <td><%= i.name %></td>
+            <td><%= i.price %></td>
+            <td>
+              <select
+                name="sel1"
+                class="form-select"
+                aria-label="Default select example"
+              >
+                <option value="" selected>請選擇甜度</option>
+                <option value="1">正常</option>
+                <option value="2">半糖</option>
+                <option value="3">微糖</option>
+                <option value="4">一分糖</option>
+                <option value="5">無糖</option>
+              </select>
+            </td>
+            <td>
+              <select
+                name="sel2"
+                class="form-select"
+                aria-label="Default select example"
+              >
+                <option value="" selected>請選擇冰量</option>
+                <option value="1">正常</option>
+                <option value="2">少冰</option>
+                <option value="3">微冰</option>
+                <option value="4">去冰</option>
+                <option value="5">溫熱</option>
+              </select>
+            </td>
+            <td>
+              <button
+                class="fas fa-cart-plus"
+                onclick="addToCart(this)"
+              ></button>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('parts/scripts') %>
+<script>
+  function addToCart(btn) {
+    // console.log(btn);
+    let $trs = $(btn).parents("tr"); //$(btn).parent().parent()
+    let id = $trs.attr("data-id");
+    let name = $trs.siblings().eq(0).html();
+    let price = $trs.siblings().eq(2).html();
+    let sel1 = $trs.find('td select[name="sel1"]').val(); // 不能用 id 去搜尋
+    let sel2 = $trs.find('td select[name="sel2"]').val();
+    let prod = {
+      id,
+      sel1,
+      sel2,
+      qty: 1,
+    };
+    console.log(prod);
+
+    let msg = "確定要將此品項加入購物車嗎?\n\n如未選取甜度或冰量, 預設為皆為正常!";
+    let yes = true;
+    if (sel1 == '' || sel2 == '') {
+      yes = confirm(msg);
+    }
+    if (yes = true){
+      $.post("/cart/add", prod, function (data) {
+        itemTotal(data);
+
+        console.log(data);
+      });
+    }
+  };
+
+  // 計算目前購物車的品項數量
+  function itemTotal(prod) {
+    let totalCount = 0;
+    for (let i = 0, len = prod.length; i < len; i++) {
+      totalCount = prod[i].qty + totalCount;
+    }
+    $("#itemCount").text(totalCount);
+  };
+
+</script>
+<%- include('parts/html-foot') %>
